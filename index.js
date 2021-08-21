@@ -1,33 +1,31 @@
 // Imports the Google Cloud client library
-const speech = require("@google-cloud/speech");
+const textToSpeech = require("@google-cloud/text-to-speech");
 
+// Import other required libraries
+const fs = require("fs");
+const util = require("util");
 // Creates a client
-const client = new speech.SpeechClient();
 
-async function quickstart() {
-  // The path to the remote LINEAR16 file
-  const gcsUri =
-    "gs://spacejoy-archisketch.appspot.com/speech_brooklyn_bridge.flac";
+const client = new textToSpeech.TextToSpeechClient();
 
-  // The audio file's encoding, sample rate in hertz, and BCP-47 language code
-  const audio = {
-    uri: gcsUri,
-  };
-  const config = {
-    encoding: "FLAC",
-    sampleRateHertz: 44100,
-    languageCode: "en-US",
-  };
+async function quickStart() {
+  // The text to synthesize
+  const text = "TRẦN VĂN LUẬN";
+
+  // Construct the request
   const request = {
-    audio: audio,
-    config: config,
+    input: { text: text },
+    // Select the language and SSML voice gender (optional)
+    voice: { languageCode: "vi-VN", ssmlGender: "NEUTRAL" },
+    // select the type of audio encoding
+    audioConfig: { audioEncoding: "MP3" },
   };
 
-  // Detects speech in the audio file
-  const [response] = await client.recognize(request);
-  const transcription = response.results
-    .map((result) => result.alternatives[0].transcript)
-    .join("\n");
-  console.log(`Transcription: ${transcription}`);
+  // Performs the text-to-speech request
+  const [response] = await client.synthesizeSpeech(request);
+  // Write the binary audio content to a local file
+  const writeFile = util.promisify(fs.writeFile);
+  await writeFile("output.mp3", response.audioContent, "binary");
+  console.log("Audio content written to file: output.mp3");
 }
-quickstart();
+quickStart();
