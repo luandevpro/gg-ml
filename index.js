@@ -1,31 +1,22 @@
 // Imports the Google Cloud client library
-const textToSpeech = require("@google-cloud/text-to-speech");
+const { Translate } = require("@google-cloud/translate").v2;
 
-// Import other required libraries
-const fs = require("fs");
-const util = require("util");
 // Creates a client
+const translate = new Translate();
 
-const client = new textToSpeech.TextToSpeechClient();
+const text = "The text to translate, e.g. Hello, world!";
+const target = "vi";
 
-async function quickStart() {
-  // The text to synthesize
-  const text = "TRẦN VĂN LUẬN";
-
-  // Construct the request
-  const request = {
-    input: { text: text },
-    // Select the language and SSML voice gender (optional)
-    voice: { languageCode: "vi-VN", ssmlGender: "NEUTRAL" },
-    // select the type of audio encoding
-    audioConfig: { audioEncoding: "MP3" },
-  };
-
-  // Performs the text-to-speech request
-  const [response] = await client.synthesizeSpeech(request);
-  // Write the binary audio content to a local file
-  const writeFile = util.promisify(fs.writeFile);
-  await writeFile("output.mp3", response.audioContent, "binary");
-  console.log("Audio content written to file: output.mp3");
+async function translateText() {
+  // Translates the text into the target language. "text" can be a string for
+  // translating a single piece of text, or an array of strings for translating
+  // multiple texts.
+  let [translations] = await translate.translate(text, target);
+  translations = Array.isArray(translations) ? translations : [translations];
+  console.log("Translations:");
+  translations.forEach((translation, i) => {
+    console.log(`${text[i]} => (${target}) ${translation}`);
+  });
 }
-quickStart();
+
+translateText();
